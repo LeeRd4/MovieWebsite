@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CinéStream — Films & Bandes Annonces</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --bg2: #0e0e1a;
+    --card: #111827;
+    --blue: #2563eb;
+    --blue-light: #3b82f6;
+    --blue-glow: rgba(37,99,235,0.18);
+    --blue-border: rgba(59,130,246,0.4);
+    --blue-card: #0f1e3d;
+    --text: #f0f4ff;
+    --muted: #8899bb;
+    --radius: 14px;
+    --radius-lg: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── PAGES ─── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8,8,16,0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--blue-border);
+    padding: 0 2.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--text);
+  }
+  .logo span { color: var(--blue-light); }
+
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.9rem; font-weight: 500;
+    transition: color .2s;
+    cursor: pointer;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  .btn-login {
+    background: var(--blue);
+    color: #fff !important;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.88rem !important;
+    transition: background .2s, transform .15s !important;
+  }
+  .btn-login:hover { background: var(--blue-light) !important; transform: translateY(-1px); }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 500px;
+    display: flex; align-items: center;
+    padding: 5rem 2.5rem 4rem;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #050520 0%, #0a1545 40%, #050520 100%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(37,99,235,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.07) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .hero-content { position: relative; max-width: 720px; }
+
+  .hero-eyebrow {
+    font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--blue-light); font-weight: 600; margin-bottom: 1rem;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    line-height: 1;
+    letter-spacing: 2px;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 span { color: var(--blue-light); }
+
+  .hero p {
+    color: var(--muted); font-size: 1.05rem; line-height: 1.7;
+    max-width: 520px; margin-bottom: 2.5rem;
+  }
+
+  /* ─── SEARCH ─── */
+  .search-wrap {
+    display: flex; gap: 0;
+    background: var(--blue-card);
+    border: 1.5px solid var(--blue-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 520px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .search-wrap:focus-within {
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 4px var(--blue-glow);
+  }
+  .search-wrap input {
+    flex: 1;
+    background: transparent;
+    border: none; outline: none;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+  }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-wrap button {
+    background: var(--blue);
+    border: none; outline: none;
+    padding: 14px 22px;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .search-wrap button:hover { background: var(--blue-light); }
+
+  /* ─── FILTERS ─── */
+  .section { padding: 3rem 2.5rem; }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.9rem; letter-spacing: 1.5px;
+    margin-bottom: 1.5rem;
+  }
+  .section-title span { color: var(--blue-light); }
+
+  .filters {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .filter-btn {
+    background: var(--blue-card);
+    border: 1px solid var(--blue-border);
+    color: var(--muted);
+    border-radius: 100px;
+    padding: 7px 18px;
+    font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all .18s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+  }
+
+  /* ─── GRID ─── */
+  .movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .movie-card {
+    background: var(--blue-card);
+    border: 1px solid var(--blue-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .22s, border-color .22s, box-shadow .22s;
+  }
+  .movie-card:hover {
+    transform: translateY(-6px) scale(1.015);
+    border-color: var(--blue-light);
+    box-shadow: 0 12px 40px rgba(37,99,235,0.25);
+  }
+
+  .movie-thumb {
+    position: relative;
+    aspect-ratio: 2/3;
+    overflow: hidden;
+  }
+  .movie-thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .3s;
+  }
+  .movie-card:hover .movie-thumb img { transform: scale(1.07); }
+
+  .movie-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: var(--blue);
+    color: #fff;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 6px;
+  }
+
+  .play-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(5,5,30,0.5);
+    opacity: 0; transition: opacity .22s;
+  }
+  .movie-card:hover .play-overlay { opacity: 1; }
+
+  .play-btn {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--blue);
+    border: 3px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .play-btn svg { width: 22px; height: 22px; fill: #fff; margin-left: 3px; }
+
+  .movie-info { padding: 14px 16px 18px; }
+  .movie-title {
+    font-weight: 600; font-size: 0.95rem;
+    margin-bottom: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .movie-meta {
+    display: flex; gap: 10px; align-items: center;
+    font-size: 0.8rem; color: var(--muted);
+  }
+  .movie-year { }
+  .dot { width: 3px; height: 3px; background: var(--muted); border-radius: 50%; }
+  .movie-genre {
+    background: rgba(59,130,246,0.15);
+    color: var(--blue-light);
+    padding: 2px 8px; border-radius: 4px;
+    font-size: 0.75rem; font-weight: 500;
+  }
+  .movie-rating {
+    margin-left: auto;
+    color: #f59e0b; font-weight: 600; font-size: 0.82rem;
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(4,4,20,0.88);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--blue-card);
+    border: 1.5px solid var(--blue-border);
+    border-radius: var(--radius-lg);
+    max-width: 860px; width: 100%;
+    overflow: hidden;
+    transform: scale(0.93); transition: transform .25s;
+  }
+  .modal-overlay.open .modal { transform: scale(1); }
+
+  .modal-video {
+    position: relative; padding-top: 56.25%;
+    background: #000;
+  }
+  .modal-video iframe {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; border: none;
+  }
+  .video-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(135deg,#040420,#0a1545);
+    gap: 16px;
+  }
+  .video-placeholder svg { width: 64px; height: 64px; fill: var(--blue-light); opacity: .7; }
+  .video-placeholder p { color: var(--muted); font-size: 0.9rem; }
+
+  .modal-body { padding: 1.5rem 2rem 2rem; }
+  .modal-header { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem; }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; letter-spacing: 1.5px;
+  }
+  .modal-close {
+    margin-left: auto; background: rgba(255,255,255,0.08);
+    border: 1px solid var(--blue-border);
+    color: var(--muted); width: 36px; height: 36px;
+    border-radius: 8px; cursor: pointer;
+    font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.15); color: var(--text); }
+
+  .modal-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .modal-tag {
+    background: rgba(37,99,235,0.18);
+    border: 1px solid var(--blue-border);
+    color: var(--blue-light);
+    padding: 4px 12px; border-radius: 6px; font-size: 0.82rem;
+  }
+  .modal-desc { color: var(--muted); font-size: 0.92rem; line-height: 1.75; }
+
+  /* ─── LOGIN PAGE ─── */
+  #login-page {
+    min-height: 100vh;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+    background: radial-gradient(ellipse at 60% 40%, #0a1545 0%, #080810 70%);
+  }
+  #login-page.active { display: flex; }
+
+  .login-card {
+    background: var(--blue-card);
+    border: 1.5px solid var(--blue-border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 24px 80px rgba(37,99,235,0.15);
+  }
+
+  .login-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem; letter-spacing: 2px;
+    text-align: center; margin-bottom: 0.4rem;
+  }
+  .login-logo span { color: var(--blue-light); }
+
+  .login-sub {
+    text-align: center; color: var(--muted);
+    font-size: 0.88rem; margin-bottom: 2.2rem;
+  }
+
+  .login-tabs {
+    display: flex;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--blue-border);
+    border-radius: 10px;
+    margin-bottom: 1.8rem;
+    overflow: hidden;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px;
+    background: transparent; border: none;
+    color: var(--muted); font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem; font-weight: 500; cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .tab-btn.active {
+    background: var(--blue); color: #fff; border-radius: 8px;
+  }
+
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label {
+    display: block; font-size: 0.83rem;
+    color: var(--muted); margin-bottom: 7px; font-weight: 500;
+  }
+  .form-group input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--blue-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+  }
+  .form-group input:focus {
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 3px var(--blue-glow);
+  }
+  .form-group input::placeholder { color: #445; }
+
+  .btn-submit {
+    width: 100%; padding: 13px;
+    background: var(--blue); color: #fff;
+    border: none; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; margin-top: 0.5rem;
+    transition: background .2s, transform .15s;
+  }
+  .btn-submit:hover { background: var(--blue-light); transform: translateY(-1px); }
+  .btn-submit:active { transform: translateY(0); }
+
+  .login-footer {
+    text-align: center; margin-top: 1.5rem;
+    font-size: 0.83rem; color: var(--muted);
+  }
+  .login-footer a { color: var(--blue-light); cursor: pointer; text-decoration: none; }
+  .login-footer a:hover { text-decoration: underline; }
+
+  .forgot { text-align: right; }
+  .forgot a { font-size: 0.8rem; color: var(--blue-light); cursor: pointer; text-decoration: none; }
+  .forgot a:hover { text-decoration: underline; }
+
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 1.4rem 0; color: var(--muted); font-size: 0.8rem;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1;
+    border-top: 1px solid var(--blue-border);
+  }
+
+  .register-tab-content { display: none; }
+  .register-tab-content.active { display: block; }
+  .signin-tab-content { display: block; }
+  .signin-tab-content.hidden { display: none; }
+
+  /* ─── NO RESULTS ─── */
+  .no-results {
+    grid-column: 1/-1;
+    text-align: center; padding: 4rem 0; color: var(--muted);
+  }
+  .no-results p:first-child { font-size: 2rem; margin-bottom: 0.5rem; }
+
+  /* ─── FEATURED ─── */
+  .featured-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+    margin-bottom: 1.4rem;
+  }
+  @media (max-width: 700px) {
+    .featured-row { grid-template-columns: 1fr; }
+    nav { padding: 0 1rem; }
+    .hero { padding: 3rem 1rem 2.5rem; }
+    .section { padding: 2rem 1rem; }
+  }
+
+  .movie-card.featured .movie-thumb { aspect-ratio: 16/9; }
+
+  /* ─── SECTION HEADER ─── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .section-header a {
+    font-size: 0.85rem; color: var(--blue-light);
+    text-decoration: none; cursor: pointer;
+  }
+  .section-header a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<!-- ─── MAIN PAGE ─── -->
+<div id="main-page" class="page active">
+
+  <nav>
+    <div class="logo">Ciné<span>Stream</span></div>
+    <div class="nav-links">
+      <a>Accueil</a>
+      <a>Films</a>
+      <a>Séries</a>
+      <a>Nouveautés</a>
+      <a class="btn-login" onclick="showLogin()">Se connecter</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">✦ Nouvelle plateforme de streaming</p>
+      <h1>Des films, <span>des émotions</span>, illimités</h1>
+      <p>Explorez des milliers de films avec bandes-annonces HD. Recherchez par thème, genre, acteur ou réalisateur.</p>
+      <div class="search-wrap">
+        <input id="main-search" type="text" placeholder="Rechercher un film, un thème, un acteur…" oninput="filterMovies()" />
+        <button onclick="filterMovies()">Rechercher</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Films à la une -->
+  <section class="section">
+    <div class="section-header">
+      <div class="section-title">À la <span>une</span></div>
+    </div>
+    <div class="featured-row" id="featured-row"></div>
+  </section>
+
+  <!-- Tous les films -->
+  <section class="section" style="padding-top:0">
+    <div class="section-header">
+      <div class="section-title">Tous les <span>films</span></div>
+    </div>
+    <div class="filters" id="filters-bar"></div>
+    <div class="movies-grid" id="movies-grid"></div>
+  </section>
+
+</div>
+
+<!-- ─── LOGIN PAGE ─── -->
+<div id="login-page" class="page">
+  <div class="login-card">
+    <div class="login-logo">Ciné<span>Stream</span></div>
+    <p class="login-sub">Votre cinéma, partout, tout le temps</p>
+
+    <div class="login-tabs">
+      <button class="tab-btn active" onclick="switchTab('signin')">Se connecter</button>
+      <button class="tab-btn" onclick="switchTab('register')">S'inscrire</button>
+    </div>
+
+    <!-- SIGN IN -->
+    <div class="signin-tab-content" id="signin-form">
+      <div class="form-group">
+        <label>Adresse e-mail</label>
+        <input type="email" placeholder="vous@exemple.fr" />
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" placeholder="••••••••" />
+      </div>
+      <div class="forgot"><a>Mot de passe oublié ?</a></div>
+      <button class="btn-submit" onclick="simulateLogin()">Se connecter</button>
+      <div class="divider">ou</div>
+      <button class="btn-submit" style="background:rgba(255,255,255,0.06);border:1px solid var(--blue-border);font-weight:400;" onclick="simulateLogin()">
+        Continuer avec Google
+      </button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="register-tab-content" id="register-form">
+      <div class="form-group">
+        <label>Prénom et nom</label>
+        <input type="text" placeholder="Jean Dupont" />
+      </div>
+      <div class="form-group">
+        <label>Adresse e-mail</label>
+        <input type="email" placeholder="vous@exemple.fr" />
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" placeholder="Minimum 8 caractères" />
+      </div>
+      <div class="form-group">
+        <label>Confirmer le mot de passe</label>
+        <input type="password" placeholder="••••••••" />
+      </div>
+      <button class="btn-submit" onclick="simulateLogin()">Créer mon compte</button>
+    </div>
+
+    <div class="login-footer">
+      <a onclick="showMain()">← Retour à l'accueil</a>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL BANDE ANNONCE ─── -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-video">
+      <div class="video-placeholder" id="video-placeholder">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <p>Bande-annonce disponible sur la fiche du film</p>
+      </div>
+      <iframe id="trailer-frame" src="" allowfullscreen allow="autoplay" style="display:none"></iframe>
+    </div>
+    <div class="modal-body">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="modal-title"></div>
+        </div>
+        <button class="modal-close" onclick="closeModalBtn()">✕</button>
+      </div>
+      <div class="modal-tags" id="modal-tags"></div>
+      <p class="modal-desc" id="modal-desc"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const movies = [
+  {
+    id:1, title:"Dune: Deuxième Partie", year:2024, genre:"Science-Fiction",
+    rating:"9.0", tags:["Épique","Aventure","Futuriste"],
+    desc:"Paul Atréides s'unit aux Fremen pour mener la guerre contre les conspirateurs qui ont détruit sa famille. La grande bataille pour le contrôle d'Arrakis commence.",
+    img:"https://image.tmdb.org/t/p/w500/8b8R8l88Qje9dn9OE8PY05Nxl1X.jpg",
+    trailer:"https://www.youtube.com/embed/Way9Dexny3w?autoplay=1",
+    featured:true
+  },
+  {
+    id:2, title:"Oppenheimer", year:2023, genre:"Historique",
+    rating:"8.9", tags:["Drame","Histoire","Guerre"],
+    desc:"L'histoire du père de la bombe atomique, J. Robert Oppenheimer, et du projet Manhattan qui changea le monde à jamais.",
+    img:"https://image.tmdb.org/t/p/w500/8Gxv8giaFEq2HMpXhbh1v5T3eFk.jpg",
+    trailer:"https://www.youtube.com/embed/uYPbbksJxIg?autoplay=1",
+    featured:true
+  },
+  {
+    id:3, title:"Barbie", year:2023, genre:"Comédie",
+    rating:"7.8", tags:["Fantaisie","Feel-good","Pop"],
+    desc:"Barbie vit dans un monde parfait jusqu'au jour où une crise existentielle la pousse à explorer le monde réel avec son ami Ken.",
+    img:"https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg",
+    trailer:"https://www.youtube.com/embed/pBk4NYhWNMM?autoplay=1"
+  },
+  {
+    id:4, title:"Interstellar", year:2014, genre:"Science-Fiction",
+    rating:"8.7", tags:["Espace","Épique","Philosophique"],
+    desc:"Une équipe d'explorateurs voyage à travers un trou de ver dans l'espace pour assurer la survie de l'humanité.",
+    img:"https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+    trailer:"https://www.youtube.com/embed/zSWdZVtXT7E?autoplay=1"
+  },
+  {
+    id:5, title:"Le Parrain", year:1972, genre:"Thriller",
+    rating:"9.2", tags:["Crime","Classique","Mafia"],
+    desc:"Le patriarche d'une puissante famille mafieuse transfère le contrôle de son empire à son fils réticent.",
+    img:"https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsLeMLoG25Oyz.jpg",
+    trailer:"https://www.youtube.com/embed/sY1S34973zA?autoplay=1"
+  },
+  {
+    id:6, title:"Avatar: La Voie de l'Eau", year:2022, genre:"Science-Fiction",
+    rating:"7.9", tags:["Nature","Action","Visuel"],
+    desc:"Jake Sully et Neytiri forment une famille sur Pandora. Mais leur passé les rattrape et ils fuient vers les tribus aquatiques.",
+    img:"https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
+    trailer:"https://www.youtube.com/embed/a8Gx8wiNbs8?autoplay=1"
+  },
+  {
+    id:7, title:"Inception", year:2010, genre:"Thriller",
+    rating:"8.8", tags:["Rêves","Mind-bending","Action"],
+    desc:"Un voleur qui s'infiltre dans les rêves des autres se voit offrir la chance d'effacer son passé en implantant une idée.",
+    img:"https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq57qu2F8dT7NIa6f.jpg",
+    trailer:"https://www.youtube.com/embed/YoHD9XEInc0?autoplay=1"
+  },
+  {
+    id:8, title:"The Batman", year:2022, genre:"Action",
+    rating:"7.9", tags:["Superhéros","Sombre","Policier"],
+    desc:"Dans sa deuxième année de lutte contre le crime à Gotham, Batman découvre la corruption à tous les niveaux de la ville.",
+    img:"https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+    trailer:"https://www.youtube.com/embed/mqqft2x_Aa4?autoplay=1"
+  },
+  {
+    id:9, title:"Past Lives", year:2023, genre:"Romance",
+    rating:"8.1", tags:["Mélancolie","Amour","Drama"],
+    desc:"Deux amis d'enfance coréens qui se sont séparés se retrouvent à New York des décennies plus tard et réévaluent leurs choix de vie.",
+    img:"https://image.tmdb.org/t/p/w500/k3waqVXSnäMRPjGxgR3fOXYbf9.jpg",
+    trailer:"https://www.youtube.com/embed/kA7-unhCHLo?autoplay=1"
+  },
+  {
+    id:10, title:"Poor Things", year:2023, genre:"Fantastique",
+    rating:"8.0", tags:["Bizarre","Artistique","Féminisme"],
+    desc:"Bella Baxter, ramenée à la vie par le brillant chirurgien Godwin Baxter, s'échappe pour découvrir le monde.",
+    img:"https://image.tmdb.org/t/p/w500/kCGlIMHnOm8JPXNbitz1kXKkPQV.jpg",
+    trailer:"https://www.youtube.com/embed/RlbR5N6veqw?autoplay=1"
+  },
+  {
+    id:11, title:"John Wick 4", year:2023, genre:"Action",
+    rating:"7.8", tags:["Combat","Adrénaline","Stylisé"],
+    desc:"John Wick affronte ses ennemis les plus redoutables et découvre des connexions dans le monde souterrain qui font de lui un ennemi mortel.",
+    img:"https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg",
+    trailer:"https://www.youtube.com/embed/qEVUtrk8_B4?autoplay=1"
+  },
+  {
+    id:12, title:"Everything Everywhere All at Once", year:2022, genre:"Science-Fiction",
+    rating:"8.9", tags:["Multivers","Émouvant","Bizarre"],
+    desc:"Une femme d'affaires ordinaire doit se connecter aux versions parallèles d'elle-même pour sauver le multivers.",
+    img:"https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg",
+    trailer:"https://www.youtube.com/embed/wxN1T1uxQ2g?autoplay=1"
+  }
+];
+
+const genres = ["Tous", ...new Set(movies.map(m => m.genre))];
+let activeGenre = "Tous";
+let searchQuery = "";
+
+function init() {
+  // Build filters
+  const bar = document.getElementById('filters-bar');
+  genres.forEach(g => {
+    const b = document.createElement('button');
+    b.className = 'filter-btn' + (g === 'Tous' ? ' active' : '');
+    b.textContent = g;
+    b.onclick = () => { activeGenre = g; document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); renderGrid(); };
+    bar.appendChild(b);
+  });
+
+  // Featured
+  const featured = movies.filter(m => m.featured);
+  const fr = document.getElementById('featured-row');
+  featured.forEach(m => {
+    fr.appendChild(buildCard(m, true));
+  });
+
+  renderGrid();
+}
+
+function renderGrid() {
+  const q = document.getElementById('main-search').value.toLowerCase().trim();
+  const grid = document.getElementById('movies-grid');
+  grid.innerHTML = '';
+  const filtered = movies.filter(m => {
+    const matchGenre = activeGenre === 'Tous' || m.genre === activeGenre;
+    const matchQ = !q || m.title.toLowerCase().includes(q)
+      || m.genre.toLowerCase().includes(q)
+      || m.tags.some(t => t.toLowerCase().includes(q))
+      || m.desc.toLowerCase().includes(q);
+    return matchGenre && matchQ;
+  });
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="no-results"><p>🎬</p><p>Aucun film trouvé</p></div>';
+    return;
+  }
+  filtered.forEach(m => grid.appendChild(buildCard(m, false)));
+}
+
+function filterMovies() { renderGrid(); }
+
+function buildCard(m, featured) {
+  const card = document.createElement('div');
+  card.className = 'movie-card' + (featured ? ' featured' : '');
+  card.onclick = () => openModal(m);
+  card.innerHTML = `
+    <div class="movie-thumb">
+      <img src="${m.img}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/400x600/0f1e3d/3b82f6?text=🎬'" />
+      <div class="movie-badge">${m.genre}</div>
+      <div class="play-overlay">
+        <div class="play-btn">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="movie-info">
+      <div class="movie-title">${m.title}</div>
+      <div class="movie-meta">
+        <span class="movie-year">${m.year}</span>
+        <span class="dot"></span>
+        <span class="movie-genre">${m.tags[0]}</span>
+        <span class="movie-rating">★ ${m.rating}</span>
+      </div>
+    </div>`;
+  return card;
+}
+
+function openModal(m) {
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-desc').textContent = m.desc;
+  const tags = document.getElementById('modal-tags');
+  tags.innerHTML = `<span class="modal-tag">${m.year}</span><span class="modal-tag">${m.genre}</span>` + m.tags.map(t=>`<span class="modal-tag">${t}</span>`).join('');
+  // Load trailer
+  const frame = document.getElementById('trailer-frame');
+  const placeholder = document.getElementById('video-placeholder');
+  if (m.trailer) {
+    frame.src = m.trailer;
+    frame.style.display = 'block';
+    placeholder.style.display = 'none';
+  } else {
+    frame.src = '';
+    frame.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalBtn();
+}
+function closeModalBtn() {
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('trailer-frame').src = '';
+  document.body.style.overflow = '';
+}
+
+function showLogin() {
+  document.getElementById('main-page').classList.remove('active');
+  document.getElementById('login-page').classList.add('active');
+}
+function showMain() {
+  document.getElementById('login-page').classList.remove('active');
+  document.getElementById('main-page').classList.add('active');
+}
+function simulateLogin() {
+  showMain();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'signin') {
+    document.getElementById('signin-form').classList.remove('hidden');
+    document.getElementById('register-form').classList.remove('active');
+    document.getElementById('signin-form').style.display = 'block';
+    document.getElementById('register-form').style.display = 'none';
+  } else {
+    document.getElementById('signin-form').style.display = 'none';
+    document.getElementById('register-form').style.display = 'block';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
+
+init();
+</script>
+</body>
+</html>
